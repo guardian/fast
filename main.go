@@ -32,13 +32,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	branchOut, err := runCmd(fmt.Sprintf("lighthouse %s", *targetURL))
+	branchOut, err := runCmd(fmt.Sprintf("lighthouse %s --output json", *targetURL))
 	check(err)
 
 	_, err = runCmd("git checkout master")
 	check(err)
 
-	masterOut, err := runCmd("lighthouse https://www.theguardian.com/society/2019/aug/22/deaths-on-the-rise-in-10-of-britains-toughest-prisons?dcr --output json")
+	masterOut, err := runCmd(fmt.Sprintf("lighthouse %s --output json", *targetURL))
 	check(err)
 
 	var masterLh, branchLh Lighthouse
