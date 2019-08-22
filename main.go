@@ -21,18 +21,41 @@ type Lighthouse struct {
 }
 
 func main() {
-	out, err := runCmd("lighthouse https://www.theguardian.com/society/2019/aug/22/deaths-on-the-rise-in-10-of-britains-toughest-prisons?dcr --output json")
+	branchOut, err := runCmd("lighthouse https://www.theguardian.com/society/2019/aug/22/deaths-on-the-rise-in-10-of-britains-toughest-prisons?dcr --output json")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var lh Lighthouse
-	err = json.Unmarshal(out, &lh)
-	fmt.Printf("Performance score is %v\n", lh.Categories.Performance.Score)
+	_, err = runCmd("git checkout master")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	masterOut, err := runCmd("lighthouse https://www.theguardian.com/society/2019/aug/22/deaths-on-the-rise-in-10-of-britains-toughest-prisons?dcr --output json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var masterLh, branchLh Lighthouse
+	quickFail(masterLh.unmarshal(masterOut))
+	quickFail(branchLh.unmarshal(branchOut))
+
+	fmt.Printf("Branch (%.2f), Master (%.2f)", branchLh.Categories.Performance.Score, masterLh.Categories.Performance.Score)
+}
+
+func (lh *Lighthouse) unmarshal(data []byte) error {
+	return json.Unmarshal(data, lh)
+}
+
+func quickFail(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func runCmd(cmd string) ([]byte, error) {
 	args := strings.Split(cmd, " ")
+	log.Printf("%v", args)
 	c := exec.Command(args[0], args[1:]...)
 
 	return c.Output()
