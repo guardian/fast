@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"os/exec"
@@ -21,24 +22,21 @@ type Lighthouse struct {
 }
 
 func main() {
-	branchOut, err := runCmd("lighthouse https://www.theguardian.com/society/2019/aug/22/deaths-on-the-rise-in-10-of-britains-toughest-prisons?dcr --output json")
-	if err != nil {
-		log.Fatal(err)
-	}
+	targetURL := flag.String("target-url", "", "a target URL to run Lighthouse against")
+	flag.Parse()
+
+	branchOut, err := runCmd(fmt.Sprintf("lighthouse %s", *targetURL))
+	check(err)
 
 	_, err = runCmd("git checkout master")
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(err)
 
 	masterOut, err := runCmd("lighthouse https://www.theguardian.com/society/2019/aug/22/deaths-on-the-rise-in-10-of-britains-toughest-prisons?dcr --output json")
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(err)
 
 	var masterLh, branchLh Lighthouse
-	quickFail(masterLh.unmarshal(masterOut))
-	quickFail(branchLh.unmarshal(branchOut))
+	check(masterLh.unmarshal(masterOut))
+	check(branchLh.unmarshal(branchOut))
 
 	fmt.Printf("Branch (%.2f), Master (%.2f)", branchLh.Categories.Performance.Score, masterLh.Categories.Performance.Score)
 }
@@ -47,7 +45,7 @@ func (lh *Lighthouse) unmarshal(data []byte) error {
 	return json.Unmarshal(data, lh)
 }
 
-func quickFail(err error) {
+func check(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
