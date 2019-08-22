@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -24,6 +25,12 @@ type Lighthouse struct {
 func main() {
 	targetURL := flag.String("target-url", "", "a target URL to run Lighthouse against")
 	flag.Parse()
+
+	if *targetURL == "" {
+		log.Print("Missing or invalid arguments.")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
 
 	branchOut, err := runCmd(fmt.Sprintf("lighthouse %s", *targetURL))
 	check(err)
