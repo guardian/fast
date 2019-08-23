@@ -90,7 +90,7 @@ func runCmd(cmd string) []byte {
 func report(master, branch Lighthouse) {
 	pcDiff := (1.0 - (master.Categories.Performance.Score / branch.Categories.Performance.Score)) * 100
 
-	fmt.Printf("%10s Perf score\n", "Branch")
-	fmt.Printf("%10s %.2f\n", "master", master.Categories.Performance.Score)
-	fmt.Printf("%10s %.2f (%+.2f%%)\n", "branch", branch.Categories.Performance.Score, pcDiff)
+	fmt.Printf("%-10s Perf score\n", "Branch")
+	fmt.Printf("%-10s %.2f\n", "master", master.Categories.Performance.Score)
+	fmt.Printf("%-10s %.2f (%+.2f%%)\n", "branch", branch.Categories.Performance.Score, pcDiff)
 }
