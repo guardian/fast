@@ -44,15 +44,7 @@ func main() {
 	masterOut := runLighthouse(*targetURL)
 	runCmd(*stopCmd)
 
-	// TODO
-	// - report against budgets (if present)
-	// - run x times and average
-	// - compare FCP, TTI, bundle size
-	fmt.Printf(
-		"Branch (%.2f), Master (%.2f)",
-		branchOut.Categories.Performance.Score,
-		masterOut.Categories.Performance.Score,
-	)
+	report(masterOut, branchOut)
 }
 
 func (lh *Lighthouse) unmarshal(data []byte) error {
@@ -84,4 +76,12 @@ func runCmd(cmd string) []byte {
 	data, err := exec.Command("/bin/sh", "-c", cmd).Output()
 	checkCmd(cmd, data, err)
 	return data
+}
+
+func report(master, branch Lighthouse) {
+	pcDiff := (1.0 - (master.Categories.Performance.Score / branch.Categories.Performance.Score)) * 100
+
+	fmt.Printf("%10s Perf score\n", "Branch")
+	fmt.Printf("%10s %.2f\n", "master", master.Categories.Performance.Score)
+	fmt.Printf("%10s %.2f (%+.2f%%)\n", "branch", branch.Categories.Performance.Score, pcDiff)
 }
