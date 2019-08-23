@@ -34,6 +34,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	ensureWdClean()
+
 	runCmd(*startCmd)
 	branchOut := runLighthouse(*targetURL)
 	runCmd(*stopCmd)
@@ -69,6 +71,13 @@ func runLighthouse(targetURL string) Lighthouse {
 	data := runCmd(fmt.Sprintf("lighthouse %s --output json", targetURL))
 	check(lh.unmarshal(data))
 	return lh
+}
+
+func ensureWdClean() {
+	data := runCmd("git status --porcelain")
+	if len(data) > 0 {
+		log.Fatal("Error, working directory is not clean.")
+	}
 }
 
 // Warning exits early on failure
