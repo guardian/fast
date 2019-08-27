@@ -55,7 +55,7 @@ func (lh *Lighthouse) unmarshal(data []byte) error {
 
 func checkCmd(cmd string, data []byte, err error) {
 	if err != nil {
-		log.Printf("Command '%s' failed. Output was:\n%v", cmd, data)
+		log.Printf("Command '%s' failed. Output was:\n%s", cmd, data)
 		log.Fatal(err)
 	}
 }
