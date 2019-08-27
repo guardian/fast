@@ -35,6 +35,7 @@ func main() {
 	}
 
 	ensureWdClean()
+	ensureHasLighthouse()
 
 	runCmd(*startCmd)
 	branchOut := runLighthouse(*targetURL)
@@ -77,6 +78,14 @@ func ensureWdClean() {
 	data := runCmd("git status --porcelain")
 	if len(data) > 0 {
 		log.Fatal("Error, working directory is not clean.")
+	}
+}
+
+func ensureHasLighthouse() {
+	cmd := "command -v lighthouse"
+	err := exec.Command("/bin/sh", "-c", cmd).Run()
+	if err != nil {
+		log.Fatal("Error, Lighthouse is not installed (use 'npm install -g lighthouse' using latest LTS Node version).")
 	}
 }
 
