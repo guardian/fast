@@ -1,18 +1,21 @@
-package main
+package config
 
 import (
 	"bytes"
 	"testing"
 	"time"
+
+	"github.com/guardian/fast/lighthouse"
 )
 
 func TestAbs(t *testing.T) {
-	report := Lighthouse{}
+	report := lighthouse.Lighthouse{}
 	w := bytes.NewBufferString("")
 	dt, _ := time.Parse(time.RFC3339, "2019-09-09T17:56:36.830633+01:00")
-	append(dt, report, w)
+	branch := "master"
+	Append(dt, branch, report, w)
 
-	want := "2019-09-09T17:56:36.830633+01:00 0.00"
+	want := "master 2019-09-09T17:56:36.830633+01:00 0.00"
 	got := w.String()
 
 	if got != want {

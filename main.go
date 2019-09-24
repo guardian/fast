@@ -1,30 +1,23 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"strings"
+	"time"
+
+	"github.com/guardian/fast/config"
+	"github.com/guardian/fast/lighthouse"
 )
-
-// Category - Type for top-level Lighthouse reports
-type Category struct {
-	Score float64 `json:"score"`
-}
-
-// Lighthouse output
-type Lighthouse struct {
-	Categories struct {
-		Performance Category `json:"performance"`
-	} `json:"categories"`
-}
 
 func main() {
 	targetURL := flag.String("target-url", "", "a target URL to run Lighthouse against")
 	startCmd := flag.String("start-cmd", "", "command(s) to start your service")
 	stopCmd := flag.String("stop-cmd", "", "command(s) to shutdown your service")
+	append := flag.Bool("append", false, "if true, appends result to .fast file")
 
 	flag.Parse()
 
@@ -37,21 +30,34 @@ func main() {
 	ensureWdClean()
 	ensureHasLighthouse()
 
-	runCmd(*startCmd)
-	branchOut := runLighthouse(*targetURL)
-	runCmd(*stopCmd)
-
-	runCmd("git checkout master")
+	branch := strings.Replace(string(runCmd("git symbolic-ref --short -q HEAD")), "\n", "", -1)
 
 	runCmd(*startCmd)
-	masterOut := runLighthouse(*targetURL)
+	res1 := runLighthouse(*targetURL)
+	res2 := runLighthouse(*targetURL)
+	res3 := runLighthouse(*targetURL)
 	runCmd(*stopCmd)
 
-	report(masterOut, branchOut)
+	average := merge(res1, res2, res3)
+
+	if *append {
+		if !config.Exists() {
+			config.Create()
+		}
+
+		conf := config.Get()
+		config.Append(time.Now(), branch, average, conf)
+	}
+
+	fmt.Println(config.Format(time.Now(), branch, average))
 }
 
-func (lh *Lighthouse) unmarshal(data []byte) error {
-	return json.Unmarshal(data, lh)
+func merge(a, b, c lighthouse.Lighthouse) lighthouse.Lighthouse {
+	// basic merge as we only care about a few values
+	avgPerfScore := (a.Categories.Performance.Score + b.Categories.Performance.Score + c.Categories.Performance.Score) / 3
+
+	a.Categories.Performance.Score = avgPerfScore
+	return a
 }
 
 func checkCmd(cmd string, data []byte, err error) {
@@ -67,10 +73,10 @@ func check(err error) {
 	}
 }
 
-func runLighthouse(targetURL string) Lighthouse {
-	var lh Lighthouse
+func runLighthouse(targetURL string) lighthouse.Lighthouse {
+	var lh lighthouse.Lighthouse
 	data := runCmd(fmt.Sprintf("lighthouse %s --output json", targetURL))
-	check(lh.unmarshal(data))
+	check(lh.Unmarshal(data))
 	return lh
 }
 
@@ -94,12 +100,4 @@ func runCmd(cmd string) []byte {
 	data, err := exec.Command("/bin/sh", "-c", cmd).Output()
 	checkCmd(cmd, data, err)
 	return data
-}
-
-func report(master, branch Lighthouse) {
-	pcDiff := (1.0 - (master.Categories.Performance.Score / branch.Categories.Performance.Score)) * 100
-
-	fmt.Printf("%-10s Perf score\n", "Branch")
-	fmt.Printf("%-10s %.2f\n", "master", master.Categories.Performance.Score)
-	fmt.Printf("%-10s %.2f (%+.2f%%)\n", "branch", branch.Categories.Performance.Score, pcDiff)
 }
