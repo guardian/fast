@@ -17,6 +17,8 @@ type LogLine struct {
 	Branch    string
 	DateTime  string
 	PerfScore float64
+	JSBytes   float64
+	TTI       float64
 }
 
 func Exists() bool {
@@ -33,8 +35,30 @@ func Get() *os.File {
 func Format(dt time.Time, branch string, report lighthouse.Lighthouse) string {
 	// datetime perf-score
 	dtFmt, _ := dt.MarshalText()
-	line := LogLine{Branch: branch, DateTime: string(dtFmt), PerfScore: report.Categories.Performance.Score}
-	return fmt.Sprintf("%-10s %s %.2f\n", line.Branch, line.DateTime, line.PerfScore)
+
+	var jsBytes float64
+	for _, item := range report.Audits.ResourceSummary.Details.Items {
+		if item.ResourceType == "script" {
+			jsBytes = item.Size
+		}
+	}
+
+	line := LogLine{
+		Branch:    branch,
+		DateTime:  string(dtFmt),
+		PerfScore: report.Categories.Performance.Score,
+		JSBytes:   jsBytes,
+		TTI:       report.Audits.Interactive.NumericValue,
+	}
+
+	return fmt.Sprintf(
+		"%-10s %s %-6.2f %-8.2f %-10f\n",
+		line.Branch,
+		line.DateTime,
+		line.PerfScore,
+		line.TTI,
+		line.JSBytes,
+	)
 }
 
 // TODO use reader/writer instead of direct access
