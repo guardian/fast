@@ -34,7 +34,7 @@ func Get() *os.File {
 
 func Format(dt time.Time, branch string, report lighthouse.Lighthouse) string {
 	// datetime perf-score
-	dtFmt, _ := dt.MarshalText()
+	dtFmt := dt.UTC().Format(time.RFC3339)
 
 	var jsBytes float64
 	for _, item := range report.Audits.ResourceSummary.Details.Items {
