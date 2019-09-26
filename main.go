@@ -49,6 +49,7 @@ func main() {
 		config.Append(time.Now(), branch, average, conf)
 	}
 
+	fmt.Println(config.Header())
 	fmt.Println(config.Format(time.Now(), branch, average))
 }
 

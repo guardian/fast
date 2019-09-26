@@ -32,6 +32,10 @@ func Get() *os.File {
 	return f
 }
 
+func Header() string {
+	return fmt.Sprintf("%-20s %-20s %-4s %-5s %-8s", "branch", "datetime", "ps", "tti", "js-kb")
+}
+
 func Format(dt time.Time, branch string, report lighthouse.Lighthouse) string {
 	// datetime perf-score
 	dtFmt := dt.UTC().Format(time.RFC3339)
@@ -52,8 +56,8 @@ func Format(dt time.Time, branch string, report lighthouse.Lighthouse) string {
 	}
 
 	return fmt.Sprintf(
-		"%-10s %s %-4.2f %-5.2f %-8.f\n",
-		line.Branch[:9],
+		"%-20s %20s %-4.2f %-5.2f %-8.f\n",
+		line.Branch[:20],
 		line.DateTime,
 		line.PerfScore,
 		line.TTI/1000, // convert to seconds
@@ -69,7 +73,7 @@ func Append(dt time.Time, branch string, report lighthouse.Lighthouse, w io.Writ
 }
 
 func Create() {
-	header := fmt.Sprint("Format: [branch] [timestamp] [perf-score] [js size] [tti]\n\n")
+	header := Header() + "\n"
 
 	conf, err := os.Create(confName)
 	check(err)
