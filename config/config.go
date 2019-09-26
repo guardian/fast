@@ -52,11 +52,11 @@ func Format(dt time.Time, branch string, report lighthouse.Lighthouse) string {
 	}
 
 	return fmt.Sprintf(
-		"%-10s %s %-6.2f %-8.2f %-10f\n",
+		"%-10s %s %-4.2f %-5.2f %-8.f\n",
 		line.Branch,
 		line.DateTime,
 		line.PerfScore,
-		line.TTI,
+		line.TTI/1000, // convert to seconds
 		line.JSBytes,
 	)
 }
