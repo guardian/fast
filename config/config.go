@@ -53,7 +53,7 @@ func Format(dt time.Time, branch string, report lighthouse.Lighthouse) string {
 
 	return fmt.Sprintf(
 		"%-10s %s %-4.2f %-5.2f %-8.f\n",
-		line.Branch,
+		line.Branch[:9],
 		line.DateTime,
 		line.PerfScore,
 		line.TTI/1000, // convert to seconds
